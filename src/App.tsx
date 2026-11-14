@@ -29,20 +29,5 @@ export default function App() {
   if (!session) return <Auth />;
   if (lib === undefined) return <p className="hint">Carico…</p>;
   if (lib === null) return <Setup onDone={setLib} />;
-
-  return (
-    <div className="app">
-      <header>
-        <h1>📚 {lib.name}</h1>
-        <details>
-          <summary>⋯</summary>
-          <div className="menu">
-            <p>Codice invito famiglia:<br /><b>{lib.invite_code}</b></p>
-            <button onClick={() => supabase.auth.signOut()}>Esci</button>
-          </div>
-        </details>
-      </header>
-      <Library lib={lib} />
-    </div>
-  );
+  return <Library lib={lib} />;
 }
