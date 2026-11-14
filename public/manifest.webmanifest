@@ -1,0 +1,9 @@
+{
+  "name": "La nostra libreria",
+  "short_name": "Libreria",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f6f1e7",
+  "theme_color": "#1f3a34",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}
