@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Draft } from "../types";
+import Cover from "./Cover";
 
 interface Props {
   initial: Draft;
@@ -29,7 +30,7 @@ export default function BookForm({ initial, locations, isEdit, duplicate, onSave
     <form className="form" onSubmit={submit}>
       {duplicate && <p className="warn">⚠️ Questo ISBN è già in libreria. Vuoi aggiungerlo lo stesso (seconda copia)?</p>}
       <div className="formtop">
-        {d.cover_url ? <img className="cover big" src={d.cover_url} alt="" /> : <div className="cover big ph">📖</div>}
+        <Cover book={d} size="lg" />
         <div className="grow">
           <label>Titolo *<input value={d.title ?? ""} onChange={set("title")} required /></label>
           <label>Autore/i<input value={d.authors ?? ""} onChange={set("authors")} /></label>

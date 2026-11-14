@@ -4,6 +4,7 @@ import { identifyCover, lookupIsbn, searchByText } from "../lib/lookup";
 import type { Book, Draft } from "../types";
 import Scanner from "./Scanner";
 import BookForm from "./BookForm";
+import Cover from "./Cover";
 
 interface Props {
   libraryId: string;
@@ -32,7 +33,7 @@ export default function AddBook({ libraryId, books, locations, lastLocation, onL
     const found = await lookupIsbn(code);
     setBusy(false);
     if (found) { setMsg(""); pick(found); }
-    else { setMsg(`ISBN ${code} non trovato: compila a mano.`); setDraft({ isbn: code, location: lastLocation }); }
+    else { setMsg(`ISBN ${code} non trovato nei database online. Compila a mano, oppure annulla e prova con 📚 Copertina.`); setDraft({ isbn: code, location: lastLocation }); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastLocation]);
 
@@ -74,6 +75,7 @@ export default function AddBook({ libraryId, books, locations, lastLocation, onL
         <button className="ghost" onClick={onClose}>Chiudi</button>
       </div>
 
+      {draft && msg && <p className="msg">{msg}</p>}
       {draft ? (
         <BookForm initial={draft} locations={locations} duplicate={dup} onSave={save} onCancel={() => setDraft(null)} />
       ) : (
@@ -100,8 +102,8 @@ export default function AddBook({ libraryId, books, locations, lastLocation, onL
               <div className="list">
                 {candidates.map((c, i) => (
                   <button key={i} className="item" onClick={() => pick(c)}>
-                    {c.cover_url ? <img className="cover" src={c.cover_url} alt="" /> : <div className="cover ph">📖</div>}
-                    <span><b>{c.title}</b><br /><small>{c.authors} {c.year && `· ${c.year}`}</small></span>
+                    <Cover book={c} size="sm" />
+                    <span className="meta"><span className="t">{c.title}</span><span className="a">{c.authors} {c.year && `· ${c.year}`}</span></span>
                   </button>
                 ))}
               </div>
