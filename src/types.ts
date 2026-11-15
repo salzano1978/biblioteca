@@ -9,6 +9,10 @@ export interface Book {
   cover_url: string | null;
   location: string | null;
   notes: string | null;
+  description: string | null;
+  categories: string | null;
+  page_count: number | null;
+  language: string | null;
   created_at: string;
 }
 export type Draft = Partial<Omit<Book, "id" | "library_id" | "created_at">>;
