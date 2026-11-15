@@ -29,6 +29,10 @@ create table books (
   categories text,          -- generi separati da virgola
   page_count int,
   language text,
+  read_status text check (read_status in ('da_leggere','in_lettura','letto')),
+  rating smallint check (rating between 1 and 5),
+  loaned_to text,
+  loaned_at date,
   added_by uuid default auth.uid(),
   created_at timestamptz default now()
 );
