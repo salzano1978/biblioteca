@@ -3,6 +3,7 @@ import { supabase } from "../lib/supabase";
 import type { Book, Draft, Library as Lib } from "../types";
 import BookForm from "./BookForm";
 import Cover from "./Cover";
+import BookDetail from "./BookDetail";
 const AddBook = lazy(() => import("./AddBook"));
 
 const Pin = () => (
@@ -18,6 +19,7 @@ export default function Library({ lib }: { lib: Lib }) {
   const [loc, setLoc] = useState("");
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<Book | null>(null);
+  const [viewing, setViewing] = useState<Book | null>(null);
   const [lastLocation, setLastLocation] = useState(() => localStorage.getItem("lastLoc") ?? "");
 
   useEffect(() => {
@@ -37,7 +39,7 @@ export default function Library({ lib }: { lib: Lib }) {
     return books.filter(
       (b) =>
         (!loc || b.location === loc) &&
-        (!t || [b.title, b.authors, b.isbn, b.publisher, b.notes].some((f) => f?.toLowerCase().includes(t)))
+        (!t || [b.title, b.authors, b.isbn, b.publisher, b.notes, b.categories, b.description].some((f) => f?.toLowerCase().includes(t)))
     );
   }, [books, q, loc]);
 
@@ -51,12 +53,14 @@ export default function Library({ lib }: { lib: Lib }) {
     const { data, error } = await supabase.from("books").update(d).eq("id", editing!.id).select().single();
     if (error) return alert(error.message);
     setBooks(books.map((b) => (b.id === editing!.id ? (data as Book) : b)).sort((a, b) => a.title.localeCompare(b.title)));
+    setViewing(data as Book);
     setEditing(null);
   };
   const del = async () => {
     await supabase.from("books").delete().eq("id", editing!.id);
     setBooks(books.filter((b) => b.id !== editing!.id));
     setEditing(null);
+    setViewing(null);
   };
 
   return (
@@ -100,7 +104,7 @@ export default function Library({ lib }: { lib: Lib }) {
           <h2>Aggiunti di recente</h2>
           <div className="recent">
             {recent.map((b) => (
-              <button key={b.id} className="recentitem" onClick={() => setEditing(b)} aria-label={b.title}>
+              <button key={b.id} className="recentitem" onClick={() => setViewing(b)} aria-label={b.title}>
                 <Cover book={b} size="md" />
               </button>
             ))}
@@ -116,7 +120,7 @@ export default function Library({ lib }: { lib: Lib }) {
             <p className="hint">{books.length ? "Nessun risultato." : "Libreria vuota: tocca + per aggiungere il primo libro."}</p>
           )}
           {shown.map((b) => (
-            <button key={b.id} className="item" onClick={() => setEditing(b)}>
+            <button key={b.id} className="item" onClick={() => setViewing(b)}>
               <Cover book={b} size="sm" />
               <span className="meta">
                 <span className="t">{b.title}</span>
@@ -146,6 +150,14 @@ export default function Library({ lib }: { lib: Lib }) {
             onClose={() => setAdding(false)}
           />
         </Suspense>
+      )}
+      {viewing && !editing && (
+        <BookDetail
+          book={viewing}
+          onClose={() => setViewing(null)}
+          onEdit={() => setEditing(viewing)}
+          onUpdated={(b) => { setBooks(books.map((x) => (x.id === b.id ? b : x))); setViewing(b); }}
+        />
       )}
       {editing && (
         <div className="sheet">
