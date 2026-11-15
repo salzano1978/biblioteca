@@ -13,6 +13,10 @@ export interface Book {
   categories: string | null;
   page_count: number | null;
   language: string | null;
+  read_status: string | null;
+  rating: number | null;
+  loaned_to: string | null;
+  loaned_at: string | null;
   created_at: string;
 }
 export type Draft = Partial<Omit<Book, "id" | "library_id" | "created_at">>;
