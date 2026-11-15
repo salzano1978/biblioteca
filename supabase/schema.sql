@@ -25,6 +25,10 @@ create table books (
   cover_url text,
   location text,            -- es. "Salotto > Scaffale 2"
   notes text,
+  description text,         -- trama
+  categories text,          -- generi separati da virgola
+  page_count int,
+  language text,
   added_by uuid default auth.uid(),
   created_at timestamptz default now()
 );
