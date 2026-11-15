@@ -4,6 +4,7 @@ import type { Book, Draft, Library as Lib } from "../types";
 import BookForm from "./BookForm";
 import Cover from "./Cover";
 import BookDetail from "./BookDetail";
+import { READ_LABELS } from "../lib/status";
 const AddBook = lazy(() => import("./AddBook"));
 
 const Pin = () => (
@@ -17,6 +18,7 @@ export default function Library({ lib }: { lib: Lib }) {
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [loc, setLoc] = useState("");
+  const [status, setStatus] = useState("");
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<Book | null>(null);
   const [viewing, setViewing] = useState<Book | null>(null);
@@ -39,15 +41,17 @@ export default function Library({ lib }: { lib: Lib }) {
     return books.filter(
       (b) =>
         (!loc || b.location === loc) &&
+        (!status || (status === "prestito" ? !!b.loaned_to : b.read_status === status)) &&
         (!t || [b.title, b.authors, b.isbn, b.publisher, b.notes, b.categories, b.description].some((f) => f?.toLowerCase().includes(t)))
     );
-  }, [books, q, loc]);
+  }, [books, q, loc, status]);
 
   const recent = useMemo(
     () => [...books].sort((a, b) => (b.created_at ?? "").localeCompare(a.created_at ?? "")).slice(0, 8),
     [books]
   );
-  const showRecent = !q.trim() && !loc && books.length >= 4;
+  const showRecent = !q.trim() && !loc && !status && books.length >= 4;
+  const loanedCount = books.filter((b) => b.loaned_to).length;
 
   const upd = async (d: Draft) => {
     const { data, error } = await supabase.from("books").update(d).eq("id", editing!.id).select().single();
@@ -99,6 +103,12 @@ export default function Library({ lib }: { lib: Lib }) {
         </div>
       )}
 
+      <div className="chips chips2" role="group" aria-label="Filtra per stato">
+        {[["", "Tutti gli stati"], ["da_leggere", "Da leggere"], ["in_lettura", "In lettura"], ["letto", "Letti"], ["prestito", `In prestito${loanedCount ? ` (${loanedCount})` : ""}`]].map(([v, l]) => (
+          <button key={v} className={status === v ? "on" : ""} aria-pressed={status === v} onClick={() => setStatus(v)}>{l}</button>
+        ))}
+      </div>
+
       {showRecent && (
         <section>
           <h2>Aggiunti di recente</h2>
@@ -113,7 +123,7 @@ export default function Library({ lib }: { lib: Lib }) {
       )}
 
       <section>
-        <h2>{loc || q ? `${shown.length} risultati` : "Tutti i libri"}</h2>
+        <h2>{loc || q || status ? `${shown.length} risultati` : "Tutti i libri"}</h2>
         <div className="list">
           {loading && <p className="hint">Carico…</p>}
           {!loading && !shown.length && (
@@ -126,6 +136,13 @@ export default function Library({ lib }: { lib: Lib }) {
                 <span className="t">{b.title}</span>
                 <span className="a">{b.authors}</span>
                 {b.location && <span className="loc"><Pin />{b.location}</span>}
+                {(b.loaned_to || b.read_status || b.rating) && (
+                  <span className="badges">
+                    {b.loaned_to && <span className="badge loan">Prestato a {b.loaned_to}</span>}
+                    {b.read_status && <span className={`badge ${b.read_status}`}>{READ_LABELS[b.read_status]}</span>}
+                    {b.rating ? <span className="badge rate">★ {b.rating}</span> : null}
+                  </span>
+                )}
               </span>
             </button>
           ))}
